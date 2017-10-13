@@ -1,56 +1,81 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
-    <meta charset="utf-8">
-    <title>Marker Clustering</title>
-    <style>
-      /* Always set the map height explicitly to define the size of the div
+
+<head>
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+  <meta charset="utf-8">
+  <title>Marker Clustering</title>
+  <style>
+    /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
-      #map {
-        height: 100%;
-      }
-      /* Optional: Makes the sample page fill the window. */
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-    </style>
-    <script src="YouBikeData.js"></script>
-  </head>
-  <body>
-    <div id="map"></div>
-    <script>
 
-      function initMap() {
+    #map {
+      height: 100%;
+    }
+    /* Optional: Makes the sample page fill the window. */
 
-        var map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 12,
-          center: {lat: 24.99116, lng: 121.53398}
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+  <script src="YouBikeData.js"></script>
+</head>
+
+<body>
+  <div id="map"></div>
+  <script>
+    var locations = GetYouBikeData2();
+
+    function initMap() {
+
+      var map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 12,
+        center: { lat: 24.99116, lng: 121.53398 }
+      });
+
+      // Create an array of alphabetical characters used to label the markers.
+      var labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+      // Add some markers to the map.
+      // Note: The code uses the JavaScript Array.prototype.map() method to
+      // create an array of markers based on a given "locations" array.
+      // The map() method here has nothing to do with the Google Maps API.
+      var markers = locations.map(function (location, i) {
+        return new google.maps.Marker({
+          position: location,
+          label: labels[i % labels.length]
         });
+      });
 
-        // Create an array of alphabetical characters used to label the markers.
-        var labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      // Add a marker clusterer to manage the markers.
+      var markerCluster = new MarkerClusterer(map, markers,
+        { imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m' });
+    }
 
-        // Add some markers to the map.
-        // Note: The code uses the JavaScript Array.prototype.map() method to
-        // create an array of markers based on a given "locations" array.
-        // The map() method here has nothing to do with the Google Maps API.
-        var markers = locations.map(function(location, i) {
-          return new google.maps.Marker({
-            position: location,
-            label: labels[i % labels.length]
-          });
+
+    function GetYouBikeData2() {
+      $.ajax({
+        url: "http://risingstar.nlabs.com.tw/youbike/stations?city=newtaipei",
+        method: "post"
+      }).then(function (data) {
+        locations = data.result.records.map(function (e) {
+          return {
+            lat: parseFloat(e.lat),
+            lng: parseFloat(e.lng)
+          };
         });
+        console.log(locations);
+        initMap();
+      });
+    }
+  </script>
+  <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCh7XAxybA_qykplcX4q4GkPn5hkm6P4sI" async
+    defer></script>
+</body>
 
-        // Add a marker clusterer to manage the markers.
-        var markerCluster = new MarkerClusterer(map, markers,
-            {imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'});
-      }
-      var locations = GetYouBikeData();
-    </script>
-    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCh7XAxybA_qykplcX4q4GkPn5hkm6P4sI&callback=initMap" async defer></script>
-  </body>
 </html>
